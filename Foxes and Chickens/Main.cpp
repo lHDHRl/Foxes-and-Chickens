@@ -1,30 +1,7 @@
-#include <SFML/Graphics.hpp>
+#include "Game.h"
 
-using namespace sf;
-
-int main()
-{
-
-    RenderWindow window(VideoMode(400, 400), L"Foxes and Chickens", Style::Default);
-
-    window.setVerticalSyncEnabled(true);
-
-    CircleShape shape(100.f, 3);
-    shape.setPosition(100, 100);
-    shape.setFillColor(Color::Magenta);
-
-    while (window.isOpen())
-    {
-        Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == Event::Closed)
-                window.close();
-        }
-
-        window.clear(Color::Blue);
-        window.draw(shape);
-        window.display();
-    }
+int main() {
+    Game game(10, 10, 40);
+    game.run();
     return 0;
 }

@@ -1,21 +1,20 @@
 #include "Grid.h"
 
-Grid::Grid(int rows, int cols, int cellSize)
+Grid::Grid(int rows, int cols, int cellSize, const sf::Texture& texture)
     : rows(rows), cols(cols), cellSize(cellSize) {
-    createGrid();
+    createGrid(texture);
 }
 
-void Grid::createGrid() {
-    for (int i = 0; i <= rows; ++i) {
-        lines.push_back(sf::Vertex(sf::Vector2f(0, i * cellSize), sf::Color::Black));
-        lines.push_back(sf::Vertex(sf::Vector2f(cols * cellSize, i * cellSize), sf::Color::Black));
-    }
-    for (int i = 0; i <= cols; ++i) {
-        lines.push_back(sf::Vertex(sf::Vector2f(i * cellSize, 0), sf::Color::Black));
-        lines.push_back(sf::Vertex(sf::Vector2f(i * cellSize, rows * cellSize), sf::Color::Black));
+void Grid::createGrid(const sf::Texture& texture) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            cells.emplace_back(j * cellSize, i * cellSize, cellSize, texture);
+        }
     }
 }
 
 void Grid::draw(sf::RenderWindow& window) {
-    window.draw(&lines[0], lines.size(), sf::Lines);
+    for (auto& cell : cells) {
+        cell.draw(window);
+    }
 }
