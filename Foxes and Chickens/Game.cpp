@@ -8,8 +8,8 @@ Game::Game(int rows, int cols, int cellSize)
 }
 
 void Game::loadTexture() {
-    if (!texture.loadFromFile("path_to_texture.png")) {
-        // Handle error
+    if (!texture.loadFromFile("textures/grass_texture1.png")) {
+        sf::err() << "Error loading texture" << std::endl;
     }
 }
 
