@@ -6,6 +6,7 @@
 class Game {
 public:
     Game(int rows, int cols, int cellSize);
+    ~Game();
     void run();
 
 private:
@@ -13,9 +14,10 @@ private:
     int cols;
     int cellSize;
     sf::RenderWindow window;
-    sf::Texture texture;
-    Grid grid;
-    void loadTexture();
+    sf::Texture mainTexture;
+    sf::Texture topTexture;
+    Grid* grid;
+    void loadTextures();
     void processEvents();
     void update();
     void render();

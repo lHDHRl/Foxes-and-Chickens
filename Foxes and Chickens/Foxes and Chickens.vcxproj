@@ -142,6 +142,10 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\grass-texture1.png" />
+    <Image Include="textures\pict_3.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

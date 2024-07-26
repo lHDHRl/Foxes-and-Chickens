@@ -6,13 +6,14 @@
 
 class Grid {
 public:
-    Grid(int rows, int cols, int cellSize, const sf::Texture& texture);
+    Grid(int rows, int cols, int cellSize);
+    void setTexture(int row, int col, const sf::Texture* texture);
     void draw(sf::RenderWindow& window);
 
 private:
     int rows;
     int cols;
     int cellSize;
-    std::vector<Cell> cells;
-    void createGrid(const sf::Texture& texture);
+    std::vector<std::vector<Cell>> cells;
+    void createGrid();
 };
