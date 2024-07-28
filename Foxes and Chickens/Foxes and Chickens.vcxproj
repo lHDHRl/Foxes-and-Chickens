@@ -132,12 +132,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="Cell.h" />
+    <ClInclude Include="Chicken.h" />
+    <ClInclude Include="Fox.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Grid.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cell.cpp" />
+    <ClCompile Include="Chicken.cpp" />
+    <ClCompile Include="Fox.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Main.cpp" />
