@@ -6,7 +6,7 @@ Fox::Fox(float x, float y, sf::Texture* texture)
     sprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
     sprite.setPosition(x, y);
     sprite.setOrigin(16, 16); // Центрирование спрайта
-    sprite.setScale(2.0f, 2.0f); // Увеличение размера лисы в 2 раза
+    sprite.setScale(3.0f, 3.0f); // Увеличение размера лисы в 2 раза
 }
 
 void Fox::draw(sf::RenderWindow& window) const {
@@ -14,9 +14,7 @@ void Fox::draw(sf::RenderWindow& window) const {
 }
 
 void Fox::startMoving(const sf::Vector2f& dest) {
-    // Центрируем координаты в пределах ячейки
-    destination.x = static_cast<int>(dest.x / 32) * 32 + 16;
-    destination.y = static_cast<int>(dest.y / 32) * 32 + 16;
+    destination = dest;
     moving = true;
     sprite.setTextureRect(sf::IntRect(32, 0, 32, 32)); // Запуск анимации движения
 }
@@ -29,7 +27,8 @@ void Fox::update(float deltaTime) {
         if (distance > 1.0f) {
             sf::Vector2f velocity = direction / distance * speed;
             sprite.move(velocity * deltaTime);
-        } else {
+        }
+        else {
             sprite.setPosition(destination);
             moving = false;
             sprite.setTextureRect(sf::IntRect(0, 0, 32, 32)); // Остановить анимацию на первом кадре
@@ -38,8 +37,6 @@ void Fox::update(float deltaTime) {
         updateAnimation(deltaTime);
     }
 }
-
-
 
 bool Fox::isMoving() const {
     return moving;
@@ -59,7 +56,7 @@ void Fox::updateAnimation(float deltaTime) {
 
     if (animationTimer >= 0.1f) {
         int left = sprite.getTextureRect().left + 32;
-        if (left >= 128) left = 32; // Обновление кадров анимации (32, 64, 96, 128 пикселей)
+        if (left >= 96) left = 32; // Обновление кадров анимации (32, 64, 96, 128 пикселей)
         sprite.setTextureRect(sf::IntRect(left, 0, 32, 32));
         animationTimer = 0.0f;
     }
