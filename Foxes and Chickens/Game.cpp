@@ -308,7 +308,15 @@ bool Game::handleSelectedFox(const sf::Vector2f& mousePos) {
                 sf::Vector2f dest = highlight.getPosition() + sf::Vector2f(cellSize / 2, cellSize / 2);
 
                 bool chickenEaten = handleFoxEating(dest);
-                if (chickenEaten) return true;
+                if (chickenEaten) {
+                    movedFoxes.push_back(selectedFox);
+                    selectedFox = nullptr;
+                    possibleMoveHighlights.clear();
+                    if (allFoxesMoved()) {
+                        switchTurn();
+                    }
+                    return true;
+                }
 
                 if (!isFoxNearby(dest)) {
                     selectedFox->startMoving(dest);
@@ -330,17 +338,20 @@ bool Game::handleSelectedFox(const sf::Vector2f& mousePos) {
 
 bool Game::handleFoxEating(const sf::Vector2f& dest) {
     bool chickenEaten = false;
-    for (auto it = chickens.begin(); it != chickens.end(); ) {
-        if (it->getBounds().contains(dest)) {
-            int chickenId = it->getId();
-            handleEating(selectedFox, chickenId);
-            it = chickens.erase(it);
-            chickenEaten = true;
+    auto it = std::remove_if(chickens.begin(), chickens.end(), [&dest, &chickenEaten](Chicken& chicken) {
+        if (chicken.getBounds().contains(dest)) {
+            chickenEaten = true; // Отметим, что курица съедена
+            return true; // Удалим курицу из списка
         }
-        else {
-            ++it;
-        }
+        return false;
+        });
+
+    if (chickenEaten) {
+        chickens.erase(it, chickens.end()); // Удаляем куриц из списка
+        // Обновляем позицию лисы после еды
+        selectedFox->setPosition(dest); // Установите новую позицию для лисы
     }
+
     return chickenEaten;
 }
 

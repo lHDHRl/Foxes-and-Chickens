@@ -66,7 +66,8 @@ void Fox::updateAnimation(float deltaTime) {
 }
 
 bool Fox::canEatChicken(const sf::Vector2f& movePos, const std::vector<Chicken>& chickens, const std::vector<Fox>& foxes) {
-    auto it = std::find_if(chickens.begin(), chickens.end(), [movePos](const Chicken& chicken) {
+    // Проверяем, есть ли курица в этой позиции
+    auto it = std::find_if(chickens.begin(), chickens.end(), [&movePos](const Chicken& chicken) {
         return chicken.getBounds().contains(movePos);
         });
 
@@ -74,17 +75,15 @@ bool Fox::canEatChicken(const sf::Vector2f& movePos, const std::vector<Chicken>&
         return false; // Нет курицы в movePos
     }
 
-    // Проверка, что позиция для прыжка не выходит за границы игрового поля
+    // Проверка на досягаемость
     sf::Vector2f direction = movePos - getPosition();
-    sf::Vector2f jumpPos = getPosition(); // Не используем jumpPos
-
-    if (jumpPos.x < 0 || jumpPos.x >= 8 * cellSize || jumpPos.y < 0 || jumpPos.y >= 8 * cellSize) {
-        return false; // Позиция для прыжка за границами
+    if (sqrt(direction.x * direction.x + direction.y * direction.y) > eatRange) {
+        return false; // Курица вне досягаемости
     }
 
     // Проверка на занятость позиции другими лисами
-    auto foxIt = std::find_if(foxes.begin(), foxes.end(), [jumpPos](const Fox& fox) {
-        return fox.getBounds().contains(jumpPos);
+    auto foxIt = std::find_if(foxes.begin(), foxes.end(), [&movePos](const Fox& fox) {
+        return fox.getBounds().contains(movePos);
         });
 
     return foxIt == foxes.end(); // Вернуть true, если позиция не занята другой лисой
@@ -92,13 +91,14 @@ bool Fox::canEatChicken(const sf::Vector2f& movePos, const std::vector<Chicken>&
 
 void Fox::eatChicken(const sf::Vector2f& movePos, std::vector<Chicken>& chickens) {
     // Удаляем курицу, если она есть в клетке
-    auto it = std::remove_if(chickens.begin(), chickens.end(), [movePos](const Chicken& chicken) {
+    auto it = std::remove_if(chickens.begin(), chickens.end(), [&movePos](const Chicken& chicken) {
         return chicken.getBounds().contains(movePos);
         });
-    chickens.erase(it, chickens.end());
 
-    // Устанавливаем позицию лисы на позицию съеденной курицы
-    setPosition(movePos);
+    if (it != chickens.end()) {
+        chickens.erase(it, chickens.end()); // Удаляем найденные курицы
+        setPosition(movePos); // Перемещаем лису на позицию съеденной курицы
+    }
 }
 
 void Fox::setPosition(const sf::Vector2f& position) {
