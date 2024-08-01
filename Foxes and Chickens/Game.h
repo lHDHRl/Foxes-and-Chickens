@@ -15,7 +15,9 @@ public:
     void startGame(); // Method to start the game
     bool checkChickenVictory(); // Метод для проверки победы куриц
     void displayVictoryMessage(); // Метод для отображения сообщения о победе
+    bool isCellFreeBehind(const sf::Vector2f& chickenPos, const sf::Vector2f& foxPos) const;
 private:
+    sf::Vector2f getPositionAfterEating(const sf::Vector2f& chickenPos, const sf::Vector2f& foxPos) const;
     // Количество куриц и размер поля
     const int numChickens;
     const int centerRow;

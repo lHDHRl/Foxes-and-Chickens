@@ -318,7 +318,8 @@ bool Game::handleSelectedFox(const sf::Vector2f& mousePos) {
                     return true;
                 }
 
-                if (!isFoxNearby(dest)) {
+                // Проверяем, что ячейка свободна и что на нее можно переместиться
+                if (!isCellOccupied(dest) && !isFoxNearby(dest)) {
                     selectedFox->startMoving(dest);
                     movedFoxes.push_back(selectedFox);
                     selectedFox = nullptr;
@@ -338,21 +339,53 @@ bool Game::handleSelectedFox(const sf::Vector2f& mousePos) {
 
 bool Game::handleFoxEating(const sf::Vector2f& dest) {
     bool chickenEaten = false;
-    auto it = std::remove_if(chickens.begin(), chickens.end(), [&dest, &chickenEaten](Chicken& chicken) {
-        if (chicken.getBounds().contains(dest)) {
-            chickenEaten = true; // Отметим, что курица съедена
-            return true; // Удалим курицу из списка
-        }
-        return false;
+    sf::Vector2f newFoxPos = selectedFox->getPosition();
+
+    auto it = std::find_if(chickens.begin(), chickens.end(), [this, &dest](const Chicken& chicken) {
+        return chicken.getBounds().contains(dest);
         });
 
+    if (it != chickens.end()) {
+        Chicken& chicken = *it;
+
+        sf::Vector2f direction = chicken.getPosition() - selectedFox->getPosition();
+        float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+        if (length != 0) {
+            direction /= length;
+        }
+
+        newFoxPos = selectedFox->getPosition() + direction * static_cast<float>(cellSize);
+
+        if (isCellFreeBehind(chicken.getPosition(), selectedFox->getPosition())) {
+            chickenEaten = true;
+            chickens.erase(it);
+        }
+    }
+
     if (chickenEaten) {
-        chickens.erase(it, chickens.end()); // Удаляем куриц из списка
-        // Обновляем позицию лисы после еды
-        selectedFox->setPosition(dest); // Установите новую позицию для лисы
+        selectedFox->setPosition(newFoxPos);
+        movedFoxes.push_back(selectedFox);
+        selectedFox = nullptr;
+        possibleMoveHighlights.clear();
+        if (allFoxesMoved()) {
+            switchTurn();
+        }
     }
 
     return chickenEaten;
+}
+
+sf::Vector2f Game::getPositionAfterEating(const sf::Vector2f& chickenPos, const sf::Vector2f& foxPos) const {
+    // Определение направления движения лисы
+    sf::Vector2f direction = chickenPos - foxPos;
+    // Нормализация направления
+    float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    if (length == 0) return foxPos; // Предотвращаем деление на ноль
+    direction /= length;
+
+    // Новая позиция за курицей
+    sf::Vector2f newPos = chickenPos + direction * static_cast<float>(cellSize);
+    return newPos;
 }
 
 bool Game::isFoxNearby(const sf::Vector2f& dest) const {
@@ -425,16 +458,28 @@ void Game::highlightFoxMoves(const Fox& fox) {
         sf::Vector2f(pos.x, pos.y + cellSize), // down
         sf::Vector2f(pos.x, pos.y - cellSize)  // up
     };
+
     for (const auto& move : moves) {
         if (move.x >= 0 && move.x < cols * cellSize && move.y >= 0 && move.y < rows * cellSize) {
             bool chickenNearby = isChickenNearby(move);
             bool foxNearby = isFoxNearby(move);
+            bool cellFreeBehind = true;
+
+            if (chickenNearby) {
+                auto chickenIt = std::find_if(chickens.begin(), chickens.end(), [&move](const Chicken& chicken) {
+                    return chicken.getBounds().contains(move);
+                    });
+
+                if (chickenIt != chickens.end()) {
+                    cellFreeBehind = isCellFreeBehind(chickenIt->getPosition(), fox.getPosition());
+                }
+            }
 
             sf::RectangleShape highlight(sf::Vector2f(static_cast<float>(cellSize), static_cast<float>(cellSize)));
-            if (chickenNearby) {
-                highlight.setFillColor(sf::Color(255, 0, 0, 128)); // Red highlight for chickens
+            if (chickenNearby && cellFreeBehind) {
+                highlight.setFillColor(sf::Color(255, 0, 0, 128)); // Red highlight for chickens with free cell behind
             }
-            else if (!foxNearby && !isCellOccupied(move)) {
+            else if (!foxNearby && !isCellOccupied(move) && cellFreeBehind) {
                 highlight.setFillColor(sf::Color(0, 255, 0, 128)); // Green highlight for empty cells
             }
             else {
@@ -496,26 +541,6 @@ bool Game::isCellOccupied(const sf::Vector2f& position) const {
     return false;
 }
 
-void Game::handleEating(Fox* fox, int chickenId) {
-    // Создаем временную карту для поиска курицы по идентификатору
-    std::map<int, Chicken*> chickenMap;
-    for (auto& chicken : chickens) {
-        chickenMap[chicken.getId()] = &chicken;
-    }
-
-    // Находим курицу по идентификатору
-    auto it = chickenMap.find(chickenId);
-    if (it != chickenMap.end()) {
-        Chicken* chicken = it->second;
-        // Устанавливаем позицию лисы на позицию съеденной курицы
-        fox->setPosition(chicken->getPosition());
-
-        // Удаляем курицу из вектора
-        chickens.erase(std::remove_if(chickens.begin(), chickens.end(),
-            [chickenId](const Chicken& c) { return c.getId() == chickenId; }),
-            chickens.end());
-    }
-}
 bool Game::checkChickenVictory() {
     return allCellsOccupied(sf::Vector2i(0, 0), 3); // Проверка занятости всех клеток в квадрате 3x3
 }
@@ -561,4 +586,17 @@ bool Game::allCellsOccupied(const sf::Vector2i& topLeft, int size) const {
         }
     }
     return true; // Все клетки заняты
+}
+bool Game::isCellFreeBehind(const sf::Vector2f& chickenPos, const sf::Vector2f& foxPos) const {
+    // Определение направления движения лисы
+    sf::Vector2f direction = chickenPos - foxPos;
+    float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    if (length == 0) return false; // Предотвращаем деление на ноль
+    direction /= length;
+
+    // Позиция за курицей
+    sf::Vector2f cellBehindChicken = chickenPos + direction * static_cast<float>(cellSize);
+
+    // Проверка, свободна ли клетка за курицей
+    return !isCellOccupied(cellBehindChicken);
 }
