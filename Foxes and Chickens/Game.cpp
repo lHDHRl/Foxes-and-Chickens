@@ -354,21 +354,18 @@ bool Game::handleFoxEating(const sf::Vector2f& dest) {
             direction /= length;
         }
 
-        newFoxPos = selectedFox->getPosition() + direction * static_cast<float>(cellSize);
+        newFoxPos = chicken.getPosition() + direction * static_cast<float>(cellSize);
 
         if (isCellFreeBehind(chicken.getPosition(), selectedFox->getPosition())) {
             chickenEaten = true;
             chickens.erase(it);
-        }
-    }
 
-    if (chickenEaten) {
-        selectedFox->setPosition(newFoxPos);
-        movedFoxes.push_back(selectedFox);
-        selectedFox = nullptr;
-        possibleMoveHighlights.clear();
-        if (allFoxesMoved()) {
-            switchTurn();
+            // Перемещаем лису на новую позицию
+            selectedFox->setPosition(newFoxPos);
+
+            // Сбрасываем выделенные ячейки и выбранную лису
+            selectedFox = nullptr;
+            possibleMoveHighlights.clear();
         }
     }
 
