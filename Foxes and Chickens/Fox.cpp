@@ -1,12 +1,15 @@
 #include "Fox.h"
+#include <cmath>
+#include <algorithm>
+#include <random>
 
 Fox::Fox(float x, float y, sf::Texture* texture)
-    : destination(x, y), speed(100.0f), moving(false) {
+    : destination(x, y), speed(100.0f), moving(false), eatRange(32.0f) {
     sprite.setTexture(*texture);
     sprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
     sprite.setPosition(x, y);
-    sprite.setOrigin(16, 16); // ÷ÂÌÚËÓ‚‡ÌËÂ ÒÔ‡ÈÚ‡
-    sprite.setScale(3.0f, 3.0f); // ”‚ÂÎË˜ÂÌËÂ ‡ÁÏÂ‡ ÎËÒ˚ ‚ 2 ‡Á‡
+    sprite.setOrigin(16, 16); // Centering the sprite
+    sprite.setScale(3.0f, 3.0f); // Scaling the fox sprite
 }
 
 void Fox::draw(sf::RenderWindow& window) const {
@@ -16,7 +19,7 @@ void Fox::draw(sf::RenderWindow& window) const {
 void Fox::startMoving(const sf::Vector2f& dest) {
     destination = dest;
     moving = true;
-    sprite.setTextureRect(sf::IntRect(32, 0, 32, 32)); // «‡ÔÛÒÍ ‡ÌËÏ‡ˆËË ‰‚ËÊÂÌËˇ
+    sprite.setTextureRect(sf::IntRect(32, 0, 32, 32)); // Start movement animation
 }
 
 void Fox::update(float deltaTime) {
@@ -31,7 +34,7 @@ void Fox::update(float deltaTime) {
         else {
             sprite.setPosition(destination);
             moving = false;
-            sprite.setTextureRect(sf::IntRect(0, 0, 32, 32)); // ŒÒÚ‡ÌÓ‚ËÚ¸ ‡ÌËÏ‡ˆË˛ Ì‡ ÔÂ‚ÓÏ Í‡‰Â
+            sprite.setTextureRect(sf::IntRect(0, 0, 32, 32)); // Stop movement animation
         }
 
         updateAnimation(deltaTime);
@@ -56,8 +59,49 @@ void Fox::updateAnimation(float deltaTime) {
 
     if (animationTimer >= 0.1f) {
         int left = sprite.getTextureRect().left + 32;
-        if (left >= 96) left = 32; // Œ·ÌÓ‚ÎÂÌËÂ Í‡‰Ó‚ ‡ÌËÏ‡ˆËË (32, 64, 96, 128 ÔËÍÒÂÎÂÈ)
+        if (left >= 96) left = 32; // Animation frames (32, 64, 96, 128 frames)
         sprite.setTextureRect(sf::IntRect(left, 0, 32, 32));
         animationTimer = 0.0f;
     }
 }
+
+bool Fox::canEatChicken(const sf::Vector2f& movePos, const std::vector<Chicken>& chickens, const std::vector<Fox>& foxes) {
+    auto it = std::find_if(chickens.begin(), chickens.end(), [movePos](const Chicken& chicken) {
+        return chicken.getBounds().contains(movePos);
+        });
+
+    if (it == chickens.end()) {
+        return false; // –ù–µ—Ç –∫—É—Ä–∏—Ü—ã –≤ movePos
+    }
+
+    // –ü—Ä–æ–≤–µ—Ä–∫–∞, —á—Ç–æ –ø–æ–∑–∏—Ü–∏—è –¥–ª—è –ø—Ä—ã–∂–∫–∞ –Ω–µ –≤—ã—Ö–æ–¥–∏—Ç –∑–∞ –≥—Ä–∞–Ω–∏—Ü—ã –∏–≥—Ä–æ–≤–æ–≥–æ –ø–æ–ª—è
+    sf::Vector2f direction = movePos - getPosition();
+    sf::Vector2f jumpPos = getPosition(); // –ù–µ –∏—Å–ø–æ–ª—å–∑—É–µ–º jumpPos
+
+    if (jumpPos.x < 0 || jumpPos.x >= 8 * cellSize || jumpPos.y < 0 || jumpPos.y >= 8 * cellSize) {
+        return false; // –ü–æ–∑–∏—Ü–∏—è –¥–ª—è –ø—Ä—ã–∂–∫–∞ –∑–∞ –≥—Ä–∞–Ω–∏—Ü–∞–º–∏
+    }
+
+    // –ü—Ä–æ–≤–µ—Ä–∫–∞ –Ω–∞ –∑–∞–Ω—è—Ç–æ—Å—Ç—å –ø–æ–∑–∏—Ü–∏–∏ –¥—Ä—É–≥–∏–º–∏ –ª–∏—Å–∞–º–∏
+    auto foxIt = std::find_if(foxes.begin(), foxes.end(), [jumpPos](const Fox& fox) {
+        return fox.getBounds().contains(jumpPos);
+        });
+
+    return foxIt == foxes.end(); // –í–µ—Ä–Ω—É—Ç—å true, –µ—Å–ª–∏ –ø–æ–∑–∏—Ü–∏—è –Ω–µ –∑–∞–Ω—è—Ç–∞ –¥—Ä—É–≥–æ–π –ª–∏—Å–æ–π
+}
+
+void Fox::eatChicken(const sf::Vector2f& movePos, std::vector<Chicken>& chickens) {
+    // –£–¥–∞–ª—è–µ–º –∫—É—Ä–∏—Ü—É, –µ—Å–ª–∏ –æ–Ω–∞ –µ—Å—Ç—å –≤ –∫–ª–µ—Ç–∫–µ
+    auto it = std::remove_if(chickens.begin(), chickens.end(), [movePos](const Chicken& chicken) {
+        return chicken.getBounds().contains(movePos);
+        });
+    chickens.erase(it, chickens.end());
+
+    // –£—Å—Ç–∞–Ω–∞–≤–ª–∏–≤–∞–µ–º –ø–æ–∑–∏—Ü–∏—é –ª–∏—Å—ã –Ω–∞ –ø–æ–∑–∏—Ü–∏—é —Å—ä–µ–¥–µ–Ω–Ω–æ–π –∫—É—Ä–∏—Ü—ã
+    setPosition(movePos);
+}
+
+void Fox::setPosition(const sf::Vector2f& position) {
+    sprite.setPosition(position);
+}
+

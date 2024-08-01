@@ -138,7 +138,7 @@
     <ClInclude Include="Fox.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Grid.h" />
-    <ClInclude Include="Pathfinding.h" />
+    <ClInclude Include="Menu.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cell.cpp" />
@@ -147,7 +147,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Pathfinding.cpp" />
+    <ClCompile Include="Menu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\grass-texture1.png" />

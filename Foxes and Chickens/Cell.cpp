@@ -3,12 +3,12 @@
 Cell::Cell(float x, float y, float size) : size(size) {
     sprite.setPosition(x, y);
 
-    // Инициализация границы
-    border.setPosition(x, y);  // Начальная позиция
-    border.setSize(sf::Vector2f(size, size));  // Размер границы
-    border.setFillColor(sf::Color::Transparent);  // Прозрачный фон
-    border.setOutlineThickness(1);  // Толщина границы
-    border.setOutlineColor(sf::Color::Black);  // Цвет границы
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    border.setPosition(x, y);  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    border.setSize(sf::Vector2f(size, size));  // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    border.setFillColor(sf::Color::Transparent);  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+    border.setOutlineThickness(1);  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    border.setOutlineColor(sf::Color::Black);  // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 }
 
 void Cell::setTexture(const sf::Texture* texture) {
@@ -22,6 +22,6 @@ void Cell::setTexture(const sf::Texture* texture) {
 }
 
 void Cell::draw(sf::RenderWindow& window) {
-    window.draw(sprite);   // Сначала рисуем спрайт
-    window.draw(border);  // Затем рисуем границу
+    window.draw(sprite);   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+    window.draw(border);  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 }
